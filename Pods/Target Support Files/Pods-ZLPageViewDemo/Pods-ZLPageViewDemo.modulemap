@@ -1,0 +1,6 @@
+framework module Pods_ZLPageViewDemo {
+  umbrella header "Pods-ZLPageViewDemo-umbrella.h"
+
+  export *
+  module * { export * }
+}
