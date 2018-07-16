@@ -8,6 +8,7 @@
 
 #import "ZLPageView.h"
 #import "Masonry.h"
+#import "UIImageView+WebCache.h"
 
 @interface ZLPageView()
 <UIScrollViewDelegate>
@@ -20,9 +21,15 @@
 @property(nonatomic,strong)UIView* indicatorView;
 
 @property(nonatomic,copy)NSArray<NSString*>* titles;
-@property(nonatomic,strong)NSMutableArray* arrayLabels;
+@property(nonatomic,copy)NSArray<NSString*>* normalImages;
+@property(nonatomic,copy)NSArray<NSString*>* highlightedImages;
 @property(nonatomic,copy)NSArray<UIViewController*>* viewcontrollers;
+
+@property(nonatomic,strong)NSMutableArray* arrayTitleViews;
+@property(nonatomic,strong)NSMutableArray* arrayLabels;
+@property(nonatomic,strong)NSMutableArray* arrayImageViews;
 @property(nonatomic,strong)NSMutableArray* arrayViewcontrollers;
+@property(nonatomic,strong)NSMutableArray* arrayBedges;
 
 @property(nonatomic,assign)BOOL isTouch;
 @property(nonatomic,assign)CGFloat oldX;
@@ -31,34 +38,53 @@
 
 @implementation ZLPageView
 
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        [self initData];
+    }
+    return self;
+}
+
 - (instancetype)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
-        self.titleCanScorll = NO;
-        self.titleHeight = 80;
-        self.titleBackColor = [UIColor whiteColor];
-        self.titleNormalColor = [UIColor blackColor];
-        self.titleHighlightColor = [UIColor redColor];
-        self.indicatorColor = [UIColor orangeColor];
-        self.currentIndex = 0;
-        self.indicatorWidth = -1;
-        self.indicatorHeight = 1.5;
-        self.indicatorStyle = Line;
-        
-        self.oldX = 0;
-        self.isTouch = NO;
-        
-        laseIndex = self.currentIndex;
+        [self initData];
     }
     return self;
 }
 
 - (instancetype)initWithTitles:(NSArray<NSString*>*)titles viewcontrollers:(NSArray<UIViewController*>*)viewcontrollers {
-    if (self = [self initWithFrame:CGRectZero]) {
-        self.titles = titles;
-        self.viewcontrollers = viewcontrollers;
-        [self setupUI];
+    if (self = [self init]) {
+        [self setTitles:titles viewcontrollers:viewcontrollers];
     }
     return self;
+}
+
+- (instancetype)initWithTitles:(NSArray<NSString*>*)titles normalImages:(NSArray<NSString*>*)normalImages highlightedImages:(NSArray<NSString*>*)highlightedImages viewcontrollers:(NSArray<UIViewController*>*)viewcontrollers {
+    if (self = [self init]) {
+        [self setTitles:titles normalImages:normalImages highlightedImages:highlightedImages viewcontrollers:viewcontrollers];
+    }
+    return self;
+}
+
+- (void)initData {
+    self.titleCanScorll = NO;
+    self.titleHeight = 80;
+    self.titleBackColor = [UIColor whiteColor];
+    self.titleNormalColor = [UIColor blackColor];
+    self.titleHighlightColor = [UIColor redColor];
+    self.titleFont = [UIFont systemFontOfSize:12];
+    self.indicatorColor = [UIColor orangeColor];
+    self.currentIndex = 0;
+    self.indicatorWidth = -1;
+    self.indicatorHeight = 1.5;
+    self.indicatorStyle = Line;
+    self.tablayoutStyle = PlainText;
+    
+    self.oldX = 0;
+    self.isTouch = NO;
+    
+    laseIndex = self.currentIndex;
 }
 
 - (void)setTitles:(NSArray<NSString*>*)titles viewcontrollers:(NSArray<UIViewController*>*)viewcontrollers {
@@ -72,9 +98,33 @@
     [self setupUI];
 }
 
+- (void)setTitles:(NSArray<NSString*>*)titles normalImages:(NSArray<NSString*>*)normalImages highlightedImages:(NSArray<NSString*>*)highlightedImages viewcontrollers:(NSArray<UIViewController*>*)viewcontrollers {
+    self.titles = titles;
+    self.normalImages = normalImages;
+    self.highlightedImages = highlightedImages;
+    self.viewcontrollers = viewcontrollers;
+    [self setupUI];
+}
+
+- (void)setBedgeForIndex:(NSInteger)index bedge:(NSString*)bedge {
+    if (index >= self.titles.count) {
+        return;
+    }
+    UILabel* label = self.arrayBedges[index];
+    if (bedge == nil || bedge.length < 1 || [bedge isEqualToString:@"0"]) {
+        label.hidden = YES;
+    } else {
+        label.hidden = NO;
+    }
+    label.text = bedge;
+}
+
 - (void)setupUI {
     [self.arrayLabels removeAllObjects];
+    [self.arrayImageViews removeAllObjects];
+    [self.arrayTitleViews removeAllObjects];
     [self.arrayViewcontrollers removeAllObjects];
+    [self.arrayBedges removeAllObjects];
     [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     
     if (self.titles.count == 0) {
@@ -106,27 +156,22 @@
         make.bottom.mas_equalTo(contentTitle);
     }];
     
-    UILabel* temp = nil;
+    UIView* temp = nil;
     for (int i=0; i<self.titles.count; i++) {
-        UILabel* label = [UILabel new];
-        label.textColor = self.titleNormalColor;
-        label.textAlignment = NSTextAlignmentCenter;
-        label.backgroundColor = [UIColor clearColor];
-        label.text = self.titles[i];
-        label.tag = i;
-        label.userInteractionEnabled = YES;
-        if (i==self.currentIndex) {
-            label.textColor = self.titleHighlightColor;
-        } else {
-            label.textColor = self.titleNormalColor;
-        }
+        UIView* view = [UIView new];
+        view.tag = i;
         UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(onTouchTitle:)];
-        [label addGestureRecognizer:tap];
-        [contentTitle addSubview:label];
+        [view addGestureRecognizer:tap];
+        [contentTitle addSubview:view];
+        
         if (self.titleCanScorll) {
-            [label mas_makeConstraints:^(MASConstraintMaker *make) {
+            [view mas_makeConstraints:^(MASConstraintMaker *make) {
                 make.height.mas_equalTo(contentTitle);
-                make.width.mas_equalTo([self getMaxWidth]);
+                if (self.tablayoutStyle > 2) {
+                    make.width.mas_equalTo([self getMaxWidth]);
+                } else {
+                    make.width.mas_equalTo([self getItemWidth:i]);
+                }
                 make.top.mas_equalTo(0);
                 if (temp == nil) {
                     make.left.mas_equalTo(0);
@@ -135,7 +180,7 @@
                 }
             }];
         } else {
-            [label mas_makeConstraints:^(MASConstraintMaker *make) {
+            [view mas_makeConstraints:^(MASConstraintMaker *make) {
                 make.height.mas_equalTo(contentTitle);
                 make.width.mas_equalTo(self.scrollViewTitle.mas_width).dividedBy(self.titles.count*1.0);
                 make.top.mas_equalTo(0);
@@ -146,17 +191,131 @@
                 }
             }];
         }
-        temp = label;
-        [self.arrayLabels addObject:label];
+        [self.arrayTitleViews addObject:view];
+        
+        if (self.tablayoutStyle == Custom) {
+            
+        } else {
+            UIImageView* imgV = [UIImageView new];
+            imgV.contentMode = UIViewContentModeScaleAspectFit;
+            [view addSubview:imgV];
+            if (self.tablayoutStyle == PlainText) {
+                imgV.hidden = YES;
+            } else {
+                imgV.hidden = NO;
+                if (i==self.currentIndex) {
+                    if (self.highlightedImages.count > i) {
+                        NSString* str = self.highlightedImages[i];
+                        if ([str hasPrefix:@"http"]) {
+                            [imgV sd_setImageWithURL:[NSURL URLWithString:str]];
+                        } else {
+                            imgV.image = [UIImage imageNamed:str];
+                        }
+                    }
+                } else {
+                    if (self.normalImages.count > i) {
+                        NSString* str = self.normalImages[i];
+                        if ([str hasPrefix:@"http"]) {
+                            [imgV sd_setImageWithURL:[NSURL URLWithString:str]];
+                        } else {
+                            imgV.image = [UIImage imageNamed:str];
+                        }
+                    }
+                }
+            }
+            if (self.tablayoutStyle > 0) {
+                [imgV mas_makeConstraints:^(MASConstraintMaker *make) {
+                    if (self.tablayoutStyle <= ImageRightTextLeft) {
+                        make.centerY.mas_equalTo(view);
+                        if (self.tablayoutStyle == ImageRightTextLeft) {
+                            make.right.mas_equalTo(-10);
+                        } else {
+                            make.left.mas_equalTo(10);
+                        }
+                    } else {
+                        make.centerX.mas_equalTo(view);
+                        if (self.tablayoutStyle == ImageTopTextBottom) {
+                            make.top.mas_equalTo(5);
+                        } else {
+                            make.bottom.mas_equalTo(-5);
+                        }
+                    }
+                    make.size.mas_equalTo(self.titleHeight/2);
+                }];
+            }
+            [self.arrayImageViews addObject:imgV];
+            
+            UILabel* label = [UILabel new];
+            label.textColor = self.titleNormalColor;
+            label.backgroundColor = [UIColor clearColor];
+            label.font = self.titleFont;
+            label.text = self.titles[i];
+            if (i==self.currentIndex) {
+                label.textColor = self.titleHighlightColor;
+            } else {
+                label.textColor = self.titleNormalColor;
+            }
+            if (self.tablayoutStyle == ImageLeftTextRight) {
+                label.textAlignment = NSTextAlignmentLeft;
+            } else if (self.tablayoutStyle == ImageRightTextLeft) {
+                label.textAlignment = NSTextAlignmentRight;
+            } else {
+                label.textAlignment = NSTextAlignmentCenter;
+            }
+            [view addSubview:label];
+            [label mas_makeConstraints:^(MASConstraintMaker *make) {
+                if (self.tablayoutStyle == PlainText) {
+                    make.edges.mas_equalTo(view);
+                } else if (self.tablayoutStyle == ImageLeftTextRight) {
+                    make.centerY.mas_equalTo(view);
+                    make.left.mas_equalTo(imgV.mas_right).offset(5);
+                    make.right.mas_equalTo(-10);
+                } else if (self.tablayoutStyle == ImageRightTextLeft) {
+                    make.centerY.mas_equalTo(view);
+                    make.left.mas_equalTo(10);
+                    make.right.mas_equalTo(imgV.mas_left).offset(-5);
+                } else if (self.tablayoutStyle == ImageTopTextBottom) {
+                    make.centerX.mas_equalTo(view);
+                    make.top.mas_equalTo(imgV.mas_bottom).offset(5);
+                    make.bottom.mas_equalTo(-5);
+                } else if (self.tablayoutStyle == ImageBottomTextTop) {
+                    make.centerX.mas_equalTo(view);
+                    make.top.mas_equalTo(5);
+                    make.bottom.mas_equalTo(imgV.mas_top).offset(-5);
+                }
+            }];
+            [self.arrayLabels addObject:label];
+            
+            UILabel* bedge = [UILabel new];
+            bedge.backgroundColor = [UIColor redColor];
+            bedge.layer.cornerRadius = 6;
+            bedge.layer.masksToBounds = YES;
+            bedge.font = [UIFont systemFontOfSize:8];
+            bedge.textAlignment = NSTextAlignmentCenter;
+            bedge.hidden = YES;
+            bedge.textColor = [UIColor whiteColor];
+            [view addSubview:bedge];
+            [bedge mas_makeConstraints:^(MASConstraintMaker *make) {
+                make.height.mas_equalTo(12);
+                make.right.mas_equalTo(-5);
+                make.top.mas_equalTo(5);
+                make.width.mas_equalTo(20);
+            }];
+            
+            [self.arrayBedges addObject:bedge];
+        }
+        
         if (i==self.titles.count-1) {
             [contentTitle mas_makeConstraints:^(MASConstraintMaker *make) {
-                make.right.mas_equalTo(label.mas_right);
+                make.right.mas_equalTo(view.mas_right);
             }];
         }
+        
+        temp = view;
     }
     
     [self.indicatorView mas_makeConstraints:^(MASConstraintMaker *make) {
-        UILabel* label = self.arrayLabels[self.currentIndex];
+        UILabel* label = self.arrayTitleViews[self.currentIndex];
         make.centerX.mas_equalTo(label);
         if (self.indicatorStyle == Line) {
             make.height.mas_equalTo(self.indicatorHeight);
@@ -218,7 +377,7 @@
         return ;
     }
     self.isTouch = YES;
-    UILabel* label = self.arrayLabels[sender.view.tag];
+    UIView* view = self.arrayTitleViews[sender.view.tag];
     for (int i=0; i<self.arrayLabels.count; i++) {
         UILabel* l = self.arrayLabels[i];
         if (i==sender.view.tag) {
@@ -227,16 +386,41 @@
             l.textColor = self.titleNormalColor;
         }
     }
+    for (int i=0; i<self.arrayImageViews.count; i++) {
+        UIImageView* imgV = self.arrayImageViews[i];
+        if (imgV.isHidden) {
+            continue;
+        }
+        if (i==self.currentIndex) {
+            if (self.highlightedImages.count > i) {
+                NSString* str = self.highlightedImages[i];
+                if ([str hasPrefix:@"http"]) {
+                    [imgV sd_setImageWithURL:[NSURL URLWithString:str]];
+                } else {
+                    imgV.image = [UIImage imageNamed:str];
+                }
+            }
+        } else {
+            if (self.normalImages.count > i) {
+                NSString* str = self.normalImages[i];
+                if ([str hasPrefix:@"http"]) {
+                    [imgV sd_setImageWithURL:[NSURL URLWithString:str]];
+                } else {
+                    imgV.image = [UIImage imageNamed:str];
+                }
+            }
+        }
+    }
     [self.indicatorView mas_remakeConstraints:^(MASConstraintMaker *make) {
-        make.centerX.mas_equalTo(label);
+        make.centerX.mas_equalTo(view);
         if (self.indicatorStyle == Line) {
             make.height.mas_equalTo(self.indicatorHeight);
         } else {
-            make.height.mas_equalTo(label);
+            make.height.mas_equalTo(view);
         }
         make.bottom.mas_equalTo(self.scrollViewTitle);
         if (self.indicatorWidth <= 0) {
-            make.width.mas_equalTo(label);
+            make.width.mas_equalTo(view);
         } else {
             make.width.mas_equalTo(self.indicatorWidth);
         }
@@ -259,21 +443,34 @@
     }
     CGFloat offsetX = scrollView.contentOffset.x - self.oldX;
     self.oldX = scrollView.contentOffset.x;
-    UILabel* label = self.arrayLabels[self.currentIndex];
-    CGFloat move = (label.frame.size.width / self.scrollViewController.frame.size.width) * offsetX;
-    //CGFloat newX = self.indicatorView.centerX + move;
-    //self.indicatorView.left += move;
+    UILabel* view = self.arrayTitleViews[self.currentIndex];
+    CGFloat move = (view.frame.size.width / self.scrollViewController.frame.size.width) * offsetX;
+    if (offsetX < 0 && self.currentIndex > 0) {//向左滑动
+        UIView* leftView = self.arrayTitleViews[self.currentIndex-1];
+        move = (leftView.frame.size.width / self.scrollViewController.frame.size.width) * offsetX;
+    }
     CGFloat newLeft = self.indicatorView.frame.origin.x + move;
+    CGFloat newWidth = self.indicatorView.frame.size.width;
     [self.indicatorView mas_remakeConstraints:^(MASConstraintMaker *make) {
         make.left.mas_equalTo(newLeft);
         if (self.indicatorStyle == Line) {
             make.height.mas_equalTo(self.indicatorHeight);
         } else {
-            make.height.mas_equalTo(label);
+            make.height.mas_equalTo(view);
         }
         make.bottom.mas_equalTo(self.scrollViewTitle);
         if (self.indicatorWidth <= 0) {
-            make.width.mas_equalTo(label);
+            if (offsetX < 0 && self.currentIndex > 0) {//向左滑动
+                UIView* leftView = self.arrayTitleViews[self.currentIndex-1];
+                CGFloat w = newWidth+((leftView.frame.size.width-view.frame.size.width)*fabs(offsetX/self.scrollViewController.frame.size.width));
+                make.width.mas_equalTo(w);
+            } else if (offsetX > 0 && self.currentIndex < self.titles.count-1) {
+                UIView* rightView = self.arrayTitleViews[self.currentIndex+1];
+                CGFloat w = newWidth+((rightView.frame.size.width-view.frame.size.width) * offsetX/self.scrollViewController.frame.size.width);
+                make.width.mas_equalTo(w);
+            } else {
+                make.width.mas_equalTo(view);
+            }
         } else {
             make.width.mas_equalTo(self.indicatorWidth);
         }
@@ -284,62 +481,17 @@
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
     self.currentIndex = scrollView.contentOffset.x / scrollView.frame.size.width;
     self.oldX = scrollView.contentOffset.x;
-    UILabel* label = self.arrayLabels[self.currentIndex];
-    for (int i=0; i<self.arrayLabels.count; i++) {
-        UILabel* l = self.arrayLabels[i];
-        if (i==self.currentIndex) {
-            l.textColor = self.titleHighlightColor;
-        } else {
-            l.textColor = self.titleNormalColor;
-        }
-    }
-    [self.indicatorView mas_remakeConstraints:^(MASConstraintMaker *make) {
-        make.centerX.mas_equalTo(label);
-        if (self.indicatorStyle == Line) {
-            make.height.mas_equalTo(self.indicatorHeight);
-        } else {
-            make.height.mas_equalTo(label);
-        }
-        make.bottom.mas_equalTo(self.scrollViewTitle);
-        if (self.indicatorWidth <= 0) {
-            make.width.mas_equalTo(label);
-        } else {
-            make.width.mas_equalTo(self.indicatorWidth);
-        }
-    }];
+    self.isTouch = NO;
+    [self adjustTitleAndImage];
     [self adjustScrollTitle];
-    //NSLog(@"当前的index = %zd", self.currentIndex);
 }
 
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
     self.currentIndex = scrollView.contentOffset.x / scrollView.frame.size.width;
     self.oldX = scrollView.contentOffset.x;
     self.isTouch = NO;
-    UILabel* label = self.arrayLabels[self.currentIndex];
-    for (int i=0; i<self.arrayLabels.count; i++) {
-        UILabel* l = self.arrayLabels[i];
-        if (i==self.currentIndex) {
-            l.textColor = self.titleHighlightColor;
-        } else {
-            l.textColor = self.titleNormalColor;
-        }
-    }
-    [self.indicatorView mas_remakeConstraints:^(MASConstraintMaker *make) {
-        make.centerX.mas_equalTo(label);
-        if (self.indicatorStyle == Line) {
-            make.height.mas_equalTo(self.indicatorHeight);
-        } else {
-            make.height.mas_equalTo(label);
-        }
-        make.bottom.mas_equalTo(self.scrollViewTitle);
-        if (self.indicatorWidth <= 0) {
-            make.width.mas_equalTo(label);
-        } else {
-            make.width.mas_equalTo(self.indicatorWidth);
-        }
-    }];
+    [self adjustTitleAndImage];
     [self adjustScrollTitle];
-    //NSLog(@"当前的index = %zd", self.currentIndex);
 }
 
 - (void)setTitleHeight:(CGFloat)titleHeight {
@@ -347,6 +499,13 @@
     [self.scrollViewTitle mas_updateConstraints:^(MASConstraintMaker *make) {
         make.height.mas_equalTo(self.titleHeight);
     }];
+}
+
+- (void)setTitleFont:(UIFont *)titleFont {
+    _titleFont = titleFont;
+    for (UILabel* l in self.arrayLabels) {
+        l.font = titleFont;
+    }
 }
 
 - (void)setIndicatorColor:(UIColor *)indicatorColor {
@@ -366,16 +525,21 @@
 
 - (void)setIndicatorStyle:(IndicatorStyle)indicatorStyle {
     _indicatorStyle = indicatorStyle;
-    if (self.arrayLabels.count > 0 && self.currentIndex < self.arrayLabels.count) {
+    if (self.arrayTitleViews.count > 0 && self.currentIndex < self.arrayTitleViews.count) {
         [self.indicatorView mas_updateConstraints:^(MASConstraintMaker *make) {
-            UILabel* label = self.arrayLabels[self.currentIndex];
+            UIView* view = self.arrayTitleViews[self.currentIndex];
             if (self.indicatorStyle == Line) {
                 make.height.mas_equalTo(self.indicatorHeight);
             } else {
-                make.height.mas_equalTo(label);
+                make.height.mas_equalTo(view);
             }
         }];
     }
+}
+
+- (void)setTablayoutStyle:(TablayoutStyle)tablayoutStyle {
+    _tablayoutStyle = tablayoutStyle;
+    [self setupUI];
 }
 
 - (void)setCurrentIndex:(NSInteger)currentIndex {
@@ -383,29 +547,7 @@
         laseIndex = _currentIndex;
         _currentIndex = currentIndex;
         self.isTouch = YES;
-        UILabel* label = self.arrayLabels[currentIndex];
-        for (int i=0; i<self.arrayLabels.count; i++) {
-            UILabel* l = self.arrayLabels[i];
-            if (i==currentIndex) {
-                l.textColor = self.titleHighlightColor;
-            } else {
-                l.textColor = self.titleNormalColor;
-            }
-        }
-        [self.indicatorView mas_remakeConstraints:^(MASConstraintMaker *make) {
-            make.centerX.mas_equalTo(label);
-            if (self.indicatorStyle == Line) {
-                make.height.mas_equalTo(self.indicatorHeight);
-            } else {
-                make.height.mas_equalTo(label);
-            }
-            make.bottom.mas_equalTo(self.scrollViewTitle);
-            if (self.indicatorWidth <= 0) {
-                make.width.mas_equalTo(label);
-            } else {
-                make.width.mas_equalTo(self.indicatorWidth);
-            }
-        }];
+        [self adjustTitleAndImage];
         [self performSelector:@selector(scrollToPosition) withObject:nil afterDelay:0.01f];
     }
 }
@@ -438,12 +580,26 @@
     }
     return _indicatorView;
 }
+
+- (NSMutableArray*)arrayTitleViews {
+    if (!_arrayTitleViews) {
+        _arrayTitleViews = [NSMutableArray new];
+    }
+    return _arrayTitleViews;
+}
                                
 - (NSMutableArray*)arrayLabels {
     if (!_arrayLabels) {
         _arrayLabels = [NSMutableArray new];
     }
     return _arrayLabels;
+}
+
+- (NSMutableArray*)arrayImageViews {
+    if (!_arrayImageViews) {
+        _arrayImageViews = [NSMutableArray new];
+    }
+    return _arrayImageViews;
 }
 
 - (NSMutableArray*)arrayViewcontrollers {
@@ -453,6 +609,13 @@
     return _arrayViewcontrollers;
 }
 
+- (NSMutableArray*)arrayBedges {
+    if (!_arrayBedges) {
+        _arrayBedges = [NSMutableArray new];
+    }
+    return _arrayBedges;
+}
+
 - (CGFloat)getMaxWidth {
     if (self.titles.count < 1) {
         return 0;
@@ -460,12 +623,72 @@
     CGFloat max = 0;
     for (int i=0; i<self.titles.count; i++) {
         NSString* str = self.titles[i];
-        CGFloat width = [str boundingRectWithSize:CGSizeMake(1000000, self.titleHeight) options:NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:16]} context:nil].size.width;
+        CGFloat width = [str boundingRectWithSize:CGSizeMake(1000000, self.titleHeight) options:NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading attributes:@{NSFontAttributeName: self.titleFont} context:nil].size.width;
         if (width > max) {
             max = width;
         }
     }
     return max + 30;
+}
+
+- (CGFloat)getItemWidth:(NSInteger)index {
+    NSString* str = self.titles[index];
+    CGFloat width = [str boundingRectWithSize:CGSizeMake(1000000, self.titleHeight) options:NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading attributes:@{NSFontAttributeName: self.titleFont} context:nil].size.width;
+    return width + 15 + 15 + self.titleHeight/2;
+}
+
+- (void)adjustTitleAndImage {
+    UIView* view = self.arrayTitleViews[self.currentIndex];
+    for (int i=0; i<self.arrayLabels.count; i++) {
+        UILabel* l = self.arrayLabels[i];
+        if (i==self.currentIndex) {
+            l.textColor = self.titleHighlightColor;
+        } else {
+            l.textColor = self.titleNormalColor;
+        }
+    }
+    for (int i=0; i<self.arrayImageViews.count; i++) {
+        UIImageView* imgV = self.arrayImageViews[i];
+        if (imgV.isHidden) {
+            continue;
+        }
+        if (i==self.currentIndex) {
+            if (self.highlightedImages.count > i) {
+                NSString* str = self.highlightedImages[i];
+                if ([str hasPrefix:@"http"]) {
+                    [imgV sd_setImageWithURL:[NSURL URLWithString:str]];
+                } else {
+                    imgV.image = [UIImage imageNamed:str];
+                }
+            }
+        } else {
+            if (self.normalImages.count > i) {
+                NSString* str = self.normalImages[i];
+                if ([str hasPrefix:@"http"]) {
+                    [imgV sd_setImageWithURL:[NSURL URLWithString:str]];
+                } else {
+                    imgV.image = [UIImage imageNamed:str];
+                }
+            }
+        }
+    }
+    [self.indicatorView mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.centerX.mas_equalTo(view);
+        if (self.indicatorStyle == Line) {
+            make.height.mas_equalTo(self.indicatorHeight);
+        } else {
+            make.height.mas_equalTo(view);
+        }
+        make.bottom.mas_equalTo(self.scrollViewTitle);
+        if (self.indicatorWidth <= 0) {
+            make.width.mas_equalTo(view);
+        } else {
+            make.width.mas_equalTo(self.indicatorWidth);
+        }
+    }];
+    [UIView animateWithDuration:0.05f animations:^{
+        [self.indicatorView setNeedsLayout];
+    }];
 }
 
 - (void)adjustScrollTitle {

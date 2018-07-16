@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "ZLPageView"
-  s.version      = "1.0"
+  s.version      = "2.0"
   s.summary      = "ZLPageView"
 
   s.description  = <<-DESC
@@ -22,6 +22,6 @@ Pod::Spec.new do |s|
   #s.resources = 'SXWaveAnimate/images/*.{png,xib}'
  #s.exclude_files = "Classes/Exclude"
   s.requires_arc = true
-  s.dependency 'Masonry'
+  s.dependency 'Masonry' 'SDWebImage'
 
 end
