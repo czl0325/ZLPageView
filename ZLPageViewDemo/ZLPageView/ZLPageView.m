@@ -139,12 +139,12 @@
     
     UIView* contentTitle = [UIView new];
     contentTitle.backgroundColor = self.titleBackColor;
-    contentTitle.layer.borderColor = [UIColor blackColor].CGColor;
-    contentTitle.layer.shadowColor = [UIColor blackColor].CGColor;
-    contentTitle.layer.shadowOffset = CGSizeMake(0, 10);
-    contentTitle.layer.shadowOpacity = 0.4;
-    contentTitle.layer.shadowRadius = 0.5;
-    contentTitle.layer.shouldRasterize = YES;
+//    contentTitle.layer.borderColor = [UIColor blackColor].CGColor;
+//    contentTitle.layer.shadowColor = [UIColor blackColor].CGColor;
+//    contentTitle.layer.shadowOffset = CGSizeMake(0, 10);
+//    contentTitle.layer.shadowOpacity = 0.4;
+//    contentTitle.layer.shadowRadius = 0.5;
+//    contentTitle.layer.shouldRasterize = YES;
     [self.scrollViewTitle addSubview:contentTitle];
     [contentTitle mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.mas_equalTo(self.scrollViewTitle);
@@ -153,49 +153,97 @@
     
     [contentTitle addSubview:self.indicatorView];
     [self.indicatorView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.bottom.mas_equalTo(contentTitle);
+        if (self.tablayoutStyle != SwitchText) {
+            make.bottom.mas_equalTo(contentTitle);
+        }
     }];
     
-    UIView* temp = nil;
-    for (int i=0; i<self.titles.count; i++) {
-        UIView* view = [UIView new];
-        view.tag = i;
-        UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(onTouchTitle:)];
-        [view addGestureRecognizer:tap];
-        [contentTitle addSubview:view];
+    if (self.tablayoutStyle == SwitchText) {
+        [contentTitle mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.width.mas_equalTo(self.scrollViewTitle);
+        }];
         
-        if (self.titleCanScorll) {
-            [view mas_makeConstraints:^(MASConstraintMaker *make) {
-                make.height.mas_equalTo(contentTitle);
-                if (self.tablayoutStyle > 2) {
-                    make.width.mas_equalTo([self getMaxWidth]);
-                } else {
-                    make.width.mas_equalTo([self getItemWidth:i]);
-                }
-                make.top.mas_equalTo(0);
-                if (temp == nil) {
-                    make.left.mas_equalTo(0);
-                } else {
-                    make.left.mas_equalTo(temp.mas_right);
-                }
-            }];
-        } else {
-            [view mas_makeConstraints:^(MASConstraintMaker *make) {
-                make.height.mas_equalTo(contentTitle);
-                make.width.mas_equalTo(self.scrollViewTitle.mas_width).dividedBy(self.titles.count*1.0);
-                make.top.mas_equalTo(0);
-                if (temp == nil) {
-                    make.left.mas_equalTo(0);
-                } else {
-                    make.left.mas_equalTo(temp.mas_right);
-                }
-            }];
-        }
-        [self.arrayTitleViews addObject:view];
+        UIView* switchView = [UIView new];
+        [contentTitle addSubview:switchView];
+        [switchView mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.width.mas_equalTo(80*self.titles.count);
+            make.height.mas_equalTo(contentTitle.mas_height).offset(-20);
+            make.center.mas_equalTo(contentTitle);
+        }];
         
-        if (self.tablayoutStyle == Custom) {
+        UILabel* temp = nil;
+        for (int i=0; i<self.titles.count; i++) {
+            UILabel* label = [UILabel new];
+            label.layer.borderColor = [UIColor blackColor].CGColor;
+            label.layer.borderWidth = 0.5;
+            label.tag = i;
+            label.font = self.titleFont;
+            label.text = self.titles[i];
+            label.textAlignment = NSTextAlignmentCenter;
+            if (i==self.currentIndex) {
+                label.textColor = self.titleHighlightColor;
+            } else {
+                label.textColor = self.titleNormalColor;
+            }
+            label.userInteractionEnabled = YES;
+            UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(onTouchTitle:)];
+            [label addGestureRecognizer:tap];
+            [switchView addSubview:label];
             
-        } else {
+            [label mas_makeConstraints:^(MASConstraintMaker *make) {
+                make.width.mas_equalTo(80);
+                make.top.bottom.mas_equalTo(switchView);
+                if (temp == nil) {
+                    make.left.mas_equalTo(0);
+                } else {
+                    make.left.mas_equalTo(temp.mas_right);
+                }
+            }];
+            
+            temp = label;
+            
+            [self.arrayLabels addObject:label];
+            [self.arrayTitleViews addObject:label];
+        }
+    } else {
+        UIView* temp = nil;
+        for (int i=0; i<self.titles.count; i++) {
+            UIView* view = [UIView new];
+            view.tag = i;
+            UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(onTouchTitle:)];
+            [view addGestureRecognizer:tap];
+            [contentTitle addSubview:view];
+            
+            if (self.titleCanScorll) {
+                [view mas_makeConstraints:^(MASConstraintMaker *make) {
+                    make.height.mas_equalTo(contentTitle);
+                    if (self.tablayoutStyle > 2) {
+                        make.width.mas_equalTo([self getMaxWidth]);
+                    } else {
+                        make.width.mas_equalTo([self getItemWidth:i]);
+                    }
+                    make.top.mas_equalTo(0);
+                    if (temp == nil) {
+                        make.left.mas_equalTo(0);
+                    } else {
+                        make.left.mas_equalTo(temp.mas_right);
+                    }
+                }];
+            } else {
+                [view mas_makeConstraints:^(MASConstraintMaker *make) {
+                    make.height.mas_equalTo(contentTitle);
+                    make.width.mas_equalTo(self.scrollViewTitle.mas_width).dividedBy(self.titles.count*1.0);
+                    make.top.mas_equalTo(0);
+                    if (temp == nil) {
+                        make.left.mas_equalTo(0);
+                    } else {
+                        make.left.mas_equalTo(temp.mas_right);
+                    }
+                }];
+            }
+            
+            [self.arrayTitleViews addObject:view];
+            
             UIImageView* imgV = [UIImageView new];
             imgV.contentMode = UIViewContentModeScaleAspectFit;
             [view addSubview:imgV];
@@ -303,21 +351,21 @@
             }];
             
             [self.arrayBedges addObject:bedge];
+            
+            if (i==self.titles.count-1) {
+                [contentTitle mas_makeConstraints:^(MASConstraintMaker *make) {
+                    make.right.mas_equalTo(view.mas_right);
+                }];
+            }
+            
+            temp = view;
         }
-        
-        if (i==self.titles.count-1) {
-            [contentTitle mas_makeConstraints:^(MASConstraintMaker *make) {
-                make.right.mas_equalTo(view.mas_right);
-            }];
-        }
-        
-        temp = view;
     }
     
     [self.indicatorView mas_makeConstraints:^(MASConstraintMaker *make) {
         UILabel* label = self.arrayTitleViews[self.currentIndex];
         make.centerX.mas_equalTo(label);
-        if (self.indicatorStyle == Line) {
+        if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText) {
             make.height.mas_equalTo(self.indicatorHeight);
         } else {
             make.height.mas_equalTo(label);
@@ -327,8 +375,10 @@
         } else {
             make.width.mas_equalTo(self.indicatorWidth);
         }
+        if (self.tablayoutStyle == SwitchText) {
+            make.bottom.mas_equalTo(label);
+        }
     }];
-    //[self sendSubviewToBack:self.indicatorView];
     
     [self addSubview:self.scrollViewController];
     [self.scrollViewController mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -413,12 +463,12 @@
     }
     [self.indicatorView mas_remakeConstraints:^(MASConstraintMaker *make) {
         make.centerX.mas_equalTo(view);
-        if (self.indicatorStyle == Line) {
+        if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText) {
             make.height.mas_equalTo(self.indicatorHeight);
         } else {
             make.height.mas_equalTo(view);
         }
-        make.bottom.mas_equalTo(self.scrollViewTitle);
+        make.bottom.mas_equalTo(view);
         if (self.indicatorWidth <= 0) {
             make.width.mas_equalTo(view);
         } else {
@@ -453,12 +503,12 @@
     CGFloat newWidth = self.indicatorView.frame.size.width;
     [self.indicatorView mas_remakeConstraints:^(MASConstraintMaker *make) {
         make.left.mas_equalTo(newLeft);
-        if (self.indicatorStyle == Line) {
+        if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText) {
             make.height.mas_equalTo(self.indicatorHeight);
         } else {
             make.height.mas_equalTo(view);
         }
-        make.bottom.mas_equalTo(self.scrollViewTitle);
+        make.bottom.mas_equalTo(view);
         if (self.indicatorWidth <= 0) {
             if (offsetX < 0 && self.currentIndex > 0) {//向左滑动
                 UIView* leftView = self.arrayTitleViews[self.currentIndex-1];
@@ -492,6 +542,15 @@
     self.isTouch = NO;
     [self adjustTitleAndImage];
     [self adjustScrollTitle];
+    
+    static UIViewController *lastController = nil;
+    if (lastController != nil) {
+        if ([lastController respondsToSelector:@selector(viewWillDisappear:)]) {
+            [lastController viewWillDisappear:YES];
+        }
+    }
+    lastController = self.arrayViewcontrollers[self.currentIndex];
+    [self.arrayViewcontrollers[self.currentIndex] viewWillAppear:YES];
 }
 
 - (void)setTitleHeight:(CGFloat)titleHeight {
@@ -528,7 +587,7 @@
     if (self.arrayTitleViews.count > 0 && self.currentIndex < self.arrayTitleViews.count) {
         [self.indicatorView mas_updateConstraints:^(MASConstraintMaker *make) {
             UIView* view = self.arrayTitleViews[self.currentIndex];
-            if (self.indicatorStyle == Line) {
+            if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText) {
                 make.height.mas_equalTo(self.indicatorHeight);
             } else {
                 make.height.mas_equalTo(view);
@@ -550,6 +609,10 @@
         [self adjustTitleAndImage];
         [self performSelector:@selector(scrollToPosition) withObject:nil afterDelay:0.01f];
     }
+}
+
+- (void)setScrollEnable:(BOOL)enable {
+    self.scrollViewController.scrollEnabled = enable;
 }
 
 - (void)scrollToPosition {
@@ -674,12 +737,12 @@
     }
     [self.indicatorView mas_remakeConstraints:^(MASConstraintMaker *make) {
         make.centerX.mas_equalTo(view);
-        if (self.indicatorStyle == Line) {
+        if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText) {
             make.height.mas_equalTo(self.indicatorHeight);
         } else {
             make.height.mas_equalTo(view);
         }
-        make.bottom.mas_equalTo(self.scrollViewTitle);
+        make.bottom.mas_equalTo(view);
         if (self.indicatorWidth <= 0) {
             make.width.mas_equalTo(view);
         } else {

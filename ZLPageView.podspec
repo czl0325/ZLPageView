@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "ZLPageView"
-  s.version      = "2.0"
+  s.version      = "2.1"
   s.summary      = "ZLPageView"
 
   s.description  = <<-DESC

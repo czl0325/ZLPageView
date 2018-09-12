@@ -26,7 +26,7 @@ typedef enum  {
     ImageRightTextLeft,     //图片在右文本在左
     ImageTopTextBottom,     //图片在上文本在下
     ImageBottomTextTop,     //图片在下文本在上
-    Custom                  //自定义视图(暂未开发，下个版本开发)
+    SwitchText              //UISwitch
 }TablayoutStyle;
 
 @interface ZLPageView : UIView
@@ -58,5 +58,7 @@ typedef enum  {
 
 //设置每个tablayout的bedge，为0则自动隐藏
 - (void)setBedgeForIndex:(NSInteger)index bedge:(NSString*)bedge;
+//设置scrollview不滚动
+- (void)setScrollEnable:(BOOL)enable;
 
 @end
