@@ -476,8 +476,9 @@
         }
     }];
     [self.scrollViewController setContentOffset:CGPointMake(sender.view.tag*self.scrollViewController.frame.size.width, 0) animated:YES];
+    __weak typeof(ZLPageView*) weakSelf = self;
     [UIView animateWithDuration:0.2f animations:^{
-        [self layoutIfNeeded];
+        [weakSelf layoutIfNeeded];
     } completion:^(BOOL finished) {
         
     } ];
@@ -749,8 +750,9 @@
             make.width.mas_equalTo(self.indicatorWidth);
         }
     }];
+    __weak typeof(ZLPageView*) weakSelf = self;
     [UIView animateWithDuration:0.05f animations:^{
-        [self.indicatorView setNeedsLayout];
+        [weakSelf.indicatorView setNeedsLayout];
     }];
 }
 
