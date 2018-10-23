@@ -759,7 +759,7 @@
 - (void)adjustScrollTitle {
     if (self.titleCanScorll) {
         if (self.currentIndex > laseIndex) {
-            if (self.indicatorView.center.x > self.scrollViewTitle.contentOffset.x + self.scrollViewTitle.frame.size.width/2) {
+            if (self.indicatorView.center.x > self.scrollViewTitle.contentOffset.x + self.scrollViewTitle.frame.size.width/2 && self.scrollViewTitle.contentSize.width > self.scrollViewTitle.frame.size.width) {
                 if (self.indicatorView.center.x+self.scrollViewTitle.frame.size.width/2>self.scrollViewTitle.contentSize.width) {
                     [self.scrollViewTitle setContentOffset:CGPointMake(self.scrollViewTitle.contentSize.width-self.scrollViewTitle.frame.size.width,0) animated:YES];
                 } else {
