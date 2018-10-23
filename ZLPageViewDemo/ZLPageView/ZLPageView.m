@@ -132,6 +132,7 @@
     }
     
     [self addSubview:self.scrollViewTitle];
+    self.scrollViewTitle.backgroundColor = self.titleBackColor;
     [self.scrollViewTitle mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.right.left.mas_equalTo(self);
         make.height.mas_equalTo(self.titleHeight);
