@@ -603,6 +603,15 @@
     [self setupUI];
 }
 
+- (void)setTitleHighlightColor:(UIColor *)titleHighlightColor {
+    _titleHighlightColor = titleHighlightColor;
+    
+    if (self.currentIndex < self.arrayLabels.count) {
+        UILabel* l = self.arrayLabels[self.currentIndex];
+        l.textColor = titleHighlightColor;
+    }
+}
+
 - (void)setCurrentIndex:(NSInteger)currentIndex {
     if (_currentIndex != currentIndex) {
         laseIndex = _currentIndex;
