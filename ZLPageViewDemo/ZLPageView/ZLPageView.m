@@ -154,12 +154,12 @@
     
     [contentTitle addSubview:self.indicatorView];
     [self.indicatorView mas_makeConstraints:^(MASConstraintMaker *make) {
-        if (self.tablayoutStyle != SwitchText) {
+        if (self.tablayoutStyle != SwitchText && self.tablayoutStyle != SwitchTextNotScroll) {
             make.bottom.mas_equalTo(contentTitle);
         }
     }];
     
-    if (self.tablayoutStyle == SwitchText) {
+    if (self.tablayoutStyle == SwitchText || self.tablayoutStyle == SwitchTextNotScroll) {
         [contentTitle mas_makeConstraints:^(MASConstraintMaker *make) {
             make.width.mas_equalTo(self.scrollViewTitle);
         }];
@@ -366,7 +366,7 @@
     [self.indicatorView mas_makeConstraints:^(MASConstraintMaker *make) {
         UILabel* label = self.arrayTitleViews[self.currentIndex];
         make.centerX.mas_equalTo(label);
-        if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText) {
+        if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText && self.tablayoutStyle != SwitchTextNotScroll) {
             make.height.mas_equalTo(self.indicatorHeight);
         } else {
             make.height.mas_equalTo(label);
@@ -376,7 +376,7 @@
         } else {
             make.width.mas_equalTo(self.indicatorWidth);
         }
-        if (self.tablayoutStyle == SwitchText) {
+        if (self.tablayoutStyle == SwitchText  || self.tablayoutStyle == SwitchTextNotScroll) {
             make.bottom.mas_equalTo(label);
         }
     }];
@@ -464,7 +464,7 @@
     }
     [self.indicatorView mas_remakeConstraints:^(MASConstraintMaker *make) {
         make.centerX.mas_equalTo(view);
-        if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText) {
+        if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText && self.tablayoutStyle != SwitchTextNotScroll) {
             make.height.mas_equalTo(self.indicatorHeight);
         } else {
             make.height.mas_equalTo(view);
@@ -478,7 +478,7 @@
     }];
     [self.scrollViewController setContentOffset:CGPointMake(sender.view.tag*self.scrollViewController.frame.size.width, 0) animated:YES];
     __weak typeof(ZLPageView*) weakSelf = self;
-    [UIView animateWithDuration:0.2f animations:^{
+    [UIView animateWithDuration:(self.tablayoutStyle==SwitchTextNotScroll?0.0f:0.2f) animations:^{
         [weakSelf layoutIfNeeded];
     } completion:^(BOOL finished) {
         
@@ -505,7 +505,7 @@
     CGFloat newWidth = self.indicatorView.frame.size.width;
     [self.indicatorView mas_remakeConstraints:^(MASConstraintMaker *make) {
         make.left.mas_equalTo(newLeft);
-        if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText) {
+        if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText && self.tablayoutStyle != SwitchTextNotScroll) {
             make.height.mas_equalTo(self.indicatorHeight);
         } else {
             make.height.mas_equalTo(view);
@@ -589,7 +589,7 @@
     if (self.arrayTitleViews.count > 0 && self.currentIndex < self.arrayTitleViews.count) {
         [self.indicatorView mas_updateConstraints:^(MASConstraintMaker *make) {
             UIView* view = self.arrayTitleViews[self.currentIndex];
-            if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText) {
+            if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText && self.tablayoutStyle != SwitchTextNotScroll) {
                 make.height.mas_equalTo(self.indicatorHeight);
             } else {
                 make.height.mas_equalTo(view);
@@ -748,7 +748,7 @@
     }
     [self.indicatorView mas_remakeConstraints:^(MASConstraintMaker *make) {
         make.centerX.mas_equalTo(view);
-        if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText) {
+        if (self.indicatorStyle == Line && self.tablayoutStyle != SwitchText && self.tablayoutStyle != SwitchTextNotScroll) {
             make.height.mas_equalTo(self.indicatorHeight);
         } else {
             make.height.mas_equalTo(view);

@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+//版本2.2
+
 //@protocol ZLPageViewDelegate<NSObject>
 //@optional
 //
@@ -26,7 +28,8 @@ typedef enum  {
     ImageRightTextLeft,     //图片在右文本在左
     ImageTopTextBottom,     //图片在上文本在下
     ImageBottomTextTop,     //图片在下文本在上
-    SwitchText              //UISwitch
+    SwitchText,             //UISwitch
+    SwitchTextNotScroll
 }TablayoutStyle;
 
 @interface ZLPageView : UIView
