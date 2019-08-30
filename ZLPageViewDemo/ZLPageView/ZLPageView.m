@@ -80,6 +80,7 @@
     self.indicatorHeight = 1.5;
     self.indicatorStyle = Line;
     self.tablayoutStyle = PlainText;
+    self.showsHorizontalScrollIndicator = NO;
     
     self.oldX = 0;
     self.isTouch = NO;
@@ -382,6 +383,7 @@
     }];
     
     [self addSubview:self.scrollViewController];
+    self.scrollViewController.showsHorizontalScrollIndicator = self.showsHorizontalScrollIndicator;
     [self.scrollViewController mas_makeConstraints:^(MASConstraintMaker *make) {
         make.bottom.right.left.mas_equalTo(self);
         make.top.mas_equalTo(self.scrollViewTitle.mas_bottom);
@@ -624,6 +626,11 @@
 
 - (void)setScrollEnable:(BOOL)enable {
     self.scrollViewController.scrollEnabled = enable;
+}
+
+- (void)setShowsHorizontalScrollIndicator:(BOOL)showsHorizontalScrollIndicator {
+    _showsHorizontalScrollIndicator = showsHorizontalScrollIndicator;
+    self.scrollViewController.showsHorizontalScrollIndicator = showsHorizontalScrollIndicator;
 }
 
 - (void)scrollToPosition {

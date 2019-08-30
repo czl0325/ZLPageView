@@ -50,6 +50,7 @@ typedef enum  {
 @property(nonatomic,assign)NSInteger currentIndex;      //当前的index
 @property(nonatomic,assign)CGFloat indicatorWidth;      //指示器的宽度
 @property(nonatomic,assign)CGFloat indicatorHeight;     //指示器的高度
+@property(nonatomic,assign)BOOL showsHorizontalScrollIndicator;//显示滚动条
 
 - (instancetype)initWithTitles:(NSArray<NSString*>*)titles viewcontrollers:(NSArray<UIViewController*>*)viewcontrollers;
 
