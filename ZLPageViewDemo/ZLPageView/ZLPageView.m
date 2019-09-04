@@ -628,6 +628,10 @@
     self.scrollViewController.scrollEnabled = enable;
 }
 
+- (NSInteger)getCurrentIndex {
+    return self.currentIndex;
+}
+
 - (void)setShowsHorizontalScrollIndicator:(BOOL)showsHorizontalScrollIndicator {
     _showsHorizontalScrollIndicator = showsHorizontalScrollIndicator;
     self.scrollViewController.showsHorizontalScrollIndicator = showsHorizontalScrollIndicator;
@@ -635,6 +639,9 @@
 
 - (void)scrollToPosition {
     [self.scrollViewController setContentOffset:CGPointMake(self.currentIndex*self.scrollViewController.frame.size.width, 0) animated:NO];
+    if ([_delegate respondsToSelector:@selector(pageView:didScrollToIndex:)]) {
+        [_delegate pageView:self didScrollToIndex:self.currentIndex];
+    }
     self.isTouch = NO;
 }
 

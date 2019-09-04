@@ -12,6 +12,7 @@
 #import "Masonry.h"
 
 @interface ViewController ()
+<ZLPageViewDelegate>
 
 @property(nonatomic,strong)ZLPageView* pageView;
 
@@ -43,6 +44,10 @@
     [self.pageView setBedgeForIndex:3 bedge:@"1"];
 }
 
+- (void)pageView:(ZLPageView *)pageView didScrollToIndex:(NSInteger)index {
+    NSLog(@"滚动到index=%zd",index);
+}
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
@@ -58,6 +63,7 @@
         _pageView.titleCanScorll = YES;
         _pageView.indicatorStyle = Block;
         _pageView.tablayoutStyle = ImageRightTextLeft;
+        _pageView.delegate = self;
     }
     return _pageView;
 }

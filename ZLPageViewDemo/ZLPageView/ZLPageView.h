@@ -10,12 +10,13 @@
 
 //版本2.2
 
-//@protocol ZLPageViewDelegate<NSObject>
-//@optional
-//
-//- (NSString*)bedgeForTablayout:(NSInteger)index;
-//
-//@end
+@class ZLPageView;
+@protocol ZLPageViewDelegate<NSObject>
+@optional
+
+- (void)pageView:(ZLPageView *)pageView didScrollToIndex:(NSInteger)index ;
+
+@end
 
 typedef enum  {
     Line,
@@ -34,7 +35,7 @@ typedef enum  {
 
 @interface ZLPageView : UIView
 
-//@property(nonatomic,assign)id <ZLPageViewDelegate> delegate;
+@property(nonatomic,weak)id <ZLPageViewDelegate> delegate;
 
 //上层tablayout是否可以滚动，如果设置NO则平分每个title
 @property(nonatomic,assign)BOOL titleCanScorll;
