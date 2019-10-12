@@ -8,13 +8,15 @@
 
 #import <UIKit/UIKit.h>
 
-//版本2.2
+//版本2.3
 
 @class ZLPageView;
 @protocol ZLPageViewDelegate<NSObject>
 @optional
 
 - (void)pageView:(ZLPageView *)pageView didScrollToIndex:(NSInteger)index ;
+
+- (void)pageView:(ZLPageView *)pageView didTouchTab:(NSInteger)index ;
 
 @end
 
@@ -53,13 +55,13 @@ typedef enum  {
 @property(nonatomic,assign)CGFloat indicatorHeight;     //指示器的高度
 @property(nonatomic,assign)BOOL showsHorizontalScrollIndicator;//显示滚动条
 
-- (instancetype)initWithTitles:(NSArray<NSString*>*)titles viewcontrollers:(NSArray<UIViewController*>*)viewcontrollers;
+- (instancetype)initWithTitles:(NSArray<NSString*>*)titles viewcontrollers:(NSArray<UIViewController*>* )viewcontrollers;
 
-- (void)setTitles:(NSArray<NSString*>*)titles viewcontrollers:(NSArray<UIViewController*>*)viewcontrollers;
+- (void)setTitles:(NSArray<NSString*>*)titles viewcontrollers:(NSArray<UIViewController*>* )viewcontrollers;
 
-- (instancetype)initWithTitles:(NSArray<NSString*>*)titles normalImages:(NSArray<NSString*>*)normalImages highlightedImages:(NSArray<NSString*>*)highlightedImages viewcontrollers:(NSArray<UIViewController*>*)viewcontrollers;
+- (instancetype)initWithTitles:(NSArray<NSString*>*)titles normalImages:(NSArray<NSString*>*)normalImages highlightedImages:(NSArray<NSString*>*)highlightedImages viewcontrollers:(NSArray<UIViewController*>* )viewcontrollers;
 
-- (void)setTitles:(NSArray<NSString*>*)titles normalImages:(NSArray<NSString*>*)normalImages highlightedImages:(NSArray<NSString*>*)highlightedImages viewcontrollers:(NSArray<UIViewController*>*)viewcontrollers;
+- (void)setTitles:(NSArray<NSString*>*)titles normalImages:(NSArray<NSString*>*)normalImages highlightedImages:(NSArray<NSString*>*)highlightedImages viewcontrollers:(NSArray<UIViewController*>* )viewcontrollers;
 
 //设置每个tablayout的bedge，为0则自动隐藏
 - (void)setBedgeForIndex:(NSInteger)index bedge:(NSString*)bedge;

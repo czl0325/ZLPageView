@@ -53,7 +53,7 @@
     return self;
 }
 
-- (instancetype)initWithTitles:(NSArray<NSString*>*)titles viewcontrollers:(NSArray<UIViewController*>*)viewcontrollers {
+- (instancetype)initWithTitles:(NSArray<NSString*>*)titles viewcontrollers:(NSArray<UIViewController*>* )viewcontrollers {
     if (self = [self init]) {
         [self setTitles:titles viewcontrollers:viewcontrollers];
     }
@@ -88,7 +88,7 @@
     laseIndex = self.currentIndex;
 }
 
-- (void)setTitles:(NSArray<NSString*>*)titles viewcontrollers:(NSArray<UIViewController*>*)viewcontrollers {
+- (void)setTitles:(NSArray<NSString*>*)titles viewcontrollers:(NSArray<UIViewController*>* )viewcontrollers {
     self.titles = titles;
     self.viewcontrollers = viewcontrollers;
     [self setupUI];
@@ -99,7 +99,7 @@
     [self setupUI];
 }
 
-- (void)setTitles:(NSArray<NSString*>*)titles normalImages:(NSArray<NSString*>*)normalImages highlightedImages:(NSArray<NSString*>*)highlightedImages viewcontrollers:(NSArray<UIViewController*>*)viewcontrollers {
+- (void)setTitles:(NSArray<NSString*>*)titles normalImages:(NSArray<NSString*>*)normalImages highlightedImages:(NSArray<NSString*>*)highlightedImages viewcontrollers:(NSArray<UIViewController*>* )viewcontrollers {
     self.titles = titles;
     self.normalImages = normalImages;
     self.highlightedImages = highlightedImages;
@@ -136,17 +136,15 @@
     self.scrollViewTitle.backgroundColor = self.titleBackColor;
     [self.scrollViewTitle mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.right.left.mas_equalTo(self);
-        make.height.mas_equalTo(self.titleHeight);
+        if (self.viewcontrollers == nil) {
+            make.height.mas_equalTo(self);
+        } else {
+            make.height.mas_equalTo(self.titleHeight);
+        }
     }];
     
     UIView* contentTitle = [UIView new];
     contentTitle.backgroundColor = self.titleBackColor;
-//    contentTitle.layer.borderColor = [UIColor blackColor].CGColor;
-//    contentTitle.layer.shadowColor = [UIColor blackColor].CGColor;
-//    contentTitle.layer.shadowOffset = CGSizeMake(0, 10);
-//    contentTitle.layer.shadowOpacity = 0.4;
-//    contentTitle.layer.shadowRadius = 0.5;
-//    contentTitle.layer.shouldRasterize = YES;
     [self.scrollViewTitle addSubview:contentTitle];
     [contentTitle mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.mas_equalTo(self.scrollViewTitle);
@@ -382,52 +380,57 @@
         }
     }];
     
-    [self addSubview:self.scrollViewController];
-    self.scrollViewController.showsHorizontalScrollIndicator = self.showsHorizontalScrollIndicator;
-    [self.scrollViewController mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.bottom.right.left.mas_equalTo(self);
-        make.top.mas_equalTo(self.scrollViewTitle.mas_bottom);
-    }];
-    
-    UIView* contentController = [UIView new];
-    contentController.backgroundColor = [UIColor redColor];
-    [self.scrollViewController addSubview:contentController];
-    [contentController mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.mas_equalTo(self.scrollViewController);
-        make.height.mas_equalTo(self.scrollViewController);
-    }];
-    
-    if (self.viewcontrollers.count == 0) {
-        return;
-    }
-    
-    UIViewController* tempVC = nil;
-    for (int i=0; i<self.viewcontrollers.count; i++) {
-        UIViewController* vc = self.viewcontrollers[i];
-        //[self.viewController addChildViewController:vc];
-        [contentController addSubview:vc.view];
-        [vc.view mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.top.height.mas_equalTo(contentController);
-            make.width.mas_equalTo(self.scrollViewController);
-            if (tempVC == nil) {
-                make.left.mas_equalTo(0);
-            } else {
-                make.left.mas_equalTo(tempVC.view.mas_right);
-            }
+    if (self.viewcontrollers != nil) {
+        [self addSubview:self.scrollViewController];
+        self.scrollViewController.showsHorizontalScrollIndicator = self.showsHorizontalScrollIndicator;
+        [self.scrollViewController mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.bottom.right.left.mas_equalTo(self);
+            make.top.mas_equalTo(self.scrollViewTitle.mas_bottom);
         }];
-        tempVC = vc;
-        if (i==self.viewcontrollers.count-1) {
-            [contentController mas_makeConstraints:^(MASConstraintMaker *make) {
-                make.right.mas_equalTo(vc.view.mas_right);
-            }];
+        
+        UIView* contentController = [UIView new];
+        contentController.backgroundColor = [UIColor redColor];
+        [self.scrollViewController addSubview:contentController];
+        [contentController mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.edges.mas_equalTo(self.scrollViewController);
+            make.height.mas_equalTo(self.scrollViewController);
+        }];
+        
+        if (self.viewcontrollers.count == 0) {
+            return;
         }
-        [self.arrayViewcontrollers addObject:vc];
+        
+        UIViewController* tempVC = nil;
+        for (int i=0; i<self.viewcontrollers.count; i++) {
+            UIViewController* vc = self.viewcontrollers[i];
+            //[self.viewController addChildViewController:vc];
+            [contentController addSubview:vc.view];
+            [vc.view mas_makeConstraints:^(MASConstraintMaker *make) {
+                make.top.height.mas_equalTo(contentController);
+                make.width.mas_equalTo(self.scrollViewController);
+                if (tempVC == nil) {
+                    make.left.mas_equalTo(0);
+                } else {
+                    make.left.mas_equalTo(tempVC.view.mas_right);
+                }
+            }];
+            tempVC = vc;
+            if (i==self.viewcontrollers.count-1) {
+                [contentController mas_makeConstraints:^(MASConstraintMaker *make) {
+                    make.right.mas_equalTo(vc.view.mas_right);
+                }];
+            }
+            [self.arrayViewcontrollers addObject:vc];
+        }
     }
 }
 
 - (void)onTouchTitle:(UIGestureRecognizer*)sender {
     if (self.currentIndex == sender.view.tag) {
         return ;
+    }
+    if ([_delegate respondsToSelector:@selector(pageView:didTouchTab:)]) {
+        [_delegate pageView:self didTouchTab:sender.view.tag];
     }
     self.isTouch = YES;
     UIView* view = self.arrayTitleViews[sender.view.tag];
@@ -483,7 +486,9 @@
     [UIView animateWithDuration:(self.tablayoutStyle==SwitchTextNotScroll?0.0f:0.2f) animations:^{
         [weakSelf layoutIfNeeded];
     } completion:^(BOOL finished) {
-        
+        if (self.viewcontrollers == nil) {
+            self.currentIndex = sender.view.tag;
+        }
     } ];
 }
 
@@ -559,9 +564,11 @@
 
 - (void)setTitleHeight:(CGFloat)titleHeight {
     _titleHeight = titleHeight;
-    [self.scrollViewTitle mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.height.mas_equalTo(self.titleHeight);
-    }];
+    if (self.viewcontrollers != nil) {
+        [self.scrollViewTitle mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.height.mas_equalTo(self.titleHeight);
+        }];
+    }
 }
 
 - (void)setTitleFont:(UIFont *)titleFont {
